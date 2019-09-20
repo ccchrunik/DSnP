@@ -19,10 +19,15 @@ string to_upper(string &input)
     bool command = false;
     for(int i = 0; i < input.length(); i++)
     {
-        if(!command && input[i] != ' ') // let the command argument upper
+        if(!command && input[i] != ' ' && input[i] >= 97 && input[i] <= 122) // let the command argument upper(if lower)
         {
             a = (int)input[i] - 32;
             comm += (char)a;
+        }
+        else if (!command && input[i] != ' ' && input[i] >= 97 && input[i] <= 122) // if command are already upper
+        {
+            comm += (char)a;
+            
         }
         else if(!command && input[i] == ' ') // stop upper the input
         {
@@ -99,6 +104,7 @@ int main()
        //cout << '1' << ' ';
        // make input string to upper case
        line = to_upper(input);
+       // cout << line << endl;
        //cout << '2' << ' ';
        comm = to_parse(line);
        //cout << '3' << endl;

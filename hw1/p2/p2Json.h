@@ -50,6 +50,7 @@ public:
    void MAX() { cout << "The maximum element is: { " << max.getKey() << " : " << max.getValue() << " }." << endl; };
    void MIN() { cout << "The maximum element is: { " << min.getKey() << " : " << min.getValue() << " }." << endl; };
    void ADD(string &);
+   int getObjectSize() { return _obj.size(); };
 
 
 private:

@@ -47,6 +47,12 @@ string to_upper(string &input)
 
 vector<string> to_parse(string &line)
 {
+    if(line[0] == '\0')
+    {
+        vector<string> words;
+        words.push_back("NONE");
+        return words;
+    } 
     string word = "";
     vector<string> words;
     for(int i = 0; i < line.length(); i++)
@@ -73,6 +79,7 @@ vector<string> to_parse(string &line)
     return words;
 }
 
+
 int main()
 {
    Json json;
@@ -93,6 +100,7 @@ int main()
    string buffer;
    getline(cin, buffer); // clear the buffer
    bool exit = false;
+   bool hasElement;
    while (true) {
        string input;
        
@@ -101,6 +109,7 @@ int main()
        cout << "Enter command: ";
        // cout << '1' << endl;
        getline(cin, input);
+       //cout << input << endl;
        //cout << '1' << ' ';
        // make input string to upper case
        line = to_upper(input);
@@ -109,9 +118,9 @@ int main()
        comm = to_parse(line);
        //cout << '3' << endl;
        // cout << comm[0] << endl;
+       hasElement = json.getObjectSize() > 0;
        
-       
-       if (comm[0] == "ADD") {
+       if (comm[0] == "ADD" && comm.size() == 3) {
            //cout << '4' << endl;
            // cout << comm[0] << " " << comm[1] << " " << comm[2] << endl;
            string send = comm[0] + " \"" + comm[1] + "\" " + comm[2];
@@ -119,16 +128,22 @@ int main()
        } else if (comm[0] == "PRINT") {
            json.PRINT();
        } else if (comm[0] == "SUM") {
-           json.SUM();
+           if(hasElement) json.SUM();
+           else cout << "Error: No element found!!" << endl;
        } else if (comm[0] == "AVE") {
-           json.AVE();
+           if(hasElement) json.AVE();
+           else cout << "Error: No element found!!" << endl;
        } else if (comm[0] == "MAX") {
-           json.MAX();
+           if(hasElement) json.MAX();
+           else cout << "Error: No element found!!" << endl;
        } else if (comm[0] == "MIN") {
-           json.MIN();
+           if(hasElement) json.MIN();
+           else cout << "Error: No element found!!" << endl;
        } else if (comm[0] == "EXIT") {
            exit = true;
            break;
+       } else if (comm[0] == "NONE") {
+           // pass
        } else {
           cout << "Error command!" << endl;
        }

@@ -112,19 +112,8 @@ getChar(istream& istr)
                   return returnCh(int(key) + MOD_KEY_FLAG);
                else return returnCh(UNDEFINED_KEY);
             }
-            else if (key == char(HOME_KEY)) {
+            else if (key == char(HOME_KEY) || key == char(END_KEY)) {
                return returnCh(int(key) + MOD_KEY_FLAG);
-               // if(mygetc(istr) == MOD_KEY_DUMMY)
-               //    return returnCh(int(key) + MOD_KEY_FLAG);
-               // else 
-               //    return returnCh(UNDEFINED_KEY);
-            }
-            else if (key == char(END_KEY)) {
-               return returnCh(int(key) + MOD_KEY_FLAG);
-               // if(mygetc(istr) == MOD_KEY_DUMMY)
-               //    return returnCh(int(key) + MOD_KEY_FLAG);
-               // else 
-               //    return returnCh(UNDEFINED_KEY);
             }
             else if ((key >= char(ARROW_KEY_BEGIN)) &&
                      (key <= char(ARROW_KEY_END)))

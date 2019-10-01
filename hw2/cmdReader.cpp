@@ -264,16 +264,16 @@ CmdParser::deleteLine()
 {
    // TODO...
    _readBufPtr = _readBufEnd = _readBuf; // set current pointer to the head of the array
-   string s = _readBufPtr;
+   string s = _readBufPtr; // record the length of the array
    // clear all characters
    for(int i = 0; i < s.length(); i++) {
-      cout << 'b';
+      cout << '\b';
    }
    for(int i = 0; i < s.length(); i++) {
-      cout << '\0';
+      cout << ' ';
    }
    for(int i = 0; i < s.length(); i++) {
-      cout << 'b';
+      cout << '\b';
    }
 
    // reset _readBuf
@@ -307,13 +307,21 @@ CmdParser::moveToHistory(int index)
    // TODO...
    if(index < 0) { // if out of the range of _history array
       mybeep();
-      index = 0;
-      cout << _history[index];
    } else if (index > _history.size() - 1) {
       mybeep();
-      index = _history.size() - 1;
-      cout << _history[index];
-   } else {
+   } else { // within the range
+      string s = _history[index];
+      deleteLine(); // reset the cmd
+      for(int i = 0; i < s.length(); i++) {
+         _readBuf[i] = s[i];
+         _readBufPtr++;
+         _readBufEnd++;
+      }
+      *_readBufEnd = '\0';
+      
+      if(_historyIdx > index) _historyIdx--;
+      else _historyIdx++;
+
       cout << _history[index];
    }
 }
@@ -339,6 +347,7 @@ CmdParser::addHistory()
    char* tmp = _readBuf;
    string s = tmp;
    _history.push_back(s);
+   _historyIdx++;
 }
 
 

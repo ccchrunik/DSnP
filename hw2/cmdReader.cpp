@@ -46,19 +46,61 @@ CmdParser::readCmdInt(istream& istr)
          case HOME_KEY       : moveBufPtr(_readBuf); break;
          case LINE_END_KEY   :
          case END_KEY        : moveBufPtr(_readBufEnd); break;
-         case BACK_SPACE_KEY : /* TODO */ break;
+         case BACK_SPACE_KEY : if(_readBufPtr != &_readBuf[0]) { // when current pointer point to the head of the array, then it stops
+                                 string s = _readBufPtr;
+                                 // clear the current position character on the screen
+                                 cout << 'b';
+                                 for(int i = 0; i < s.length() + 1; i++) {
+                                    cout << '\0';
+                                 } 
+                                 for(int i = 0; i < s.length() + 1; i++) {
+                                    cout << '\b';
+                                 }
+                                 
+                                 _readBufPtr--; // move current pointer left
+                                 char* tmp = _readBufPtr;
+
+                                 for(int i = 0; i < s.length(); i++) {
+                                    // keep replacing the current char by the next char
+                                    *tmp = s[i];
+                                    tmp++;
+                                 }
+
+                                 _readBufEnd--; // move end pointer left
+                                 *_readBufEnd = '\0'; // set end of string
+
+                                 cout << s ;
+                                 for(int i = 0; i < s.length(); i++) {
+                                    cout << '\b';
+                                 }
+                                 
+                               } else {
+                                 cout << '\a';                                 
+                               }
+
+                               break; /* TODO */ 
+                               // may have errors recheck ==================================================
+                               // not yet to move all chars from right to left
          case DELETE_KEY     : deleteChar(); break;
          case NEWLINE_KEY    : addHistory();
                                cout << char(NEWLINE_KEY);
                                resetBufAndPrintPrompt(); break;
          case ARROW_UP_KEY   : moveToHistory(_historyIdx - 1); break;
          case ARROW_DOWN_KEY : moveToHistory(_historyIdx + 1); break;
-         case ARROW_RIGHT_KEY: /* TODO */ break;
-         case ARROW_LEFT_KEY : /* TODO */ break;
+         case ARROW_RIGHT_KEY: if(_readBufPtr != _readBufEnd) { // when current pointer meet end pointer, then it stops
+                                 insertChar('\0'); // move cursor right
+                               } 
+                               break; /* TODO */
+                               // still have to handle how to move all chars to right
+         case ARROW_LEFT_KEY : if(_readBufPtr != _readBuf) { // when current pointer reach index 0, then it stops
+                                 cout << '\b'; // set cursor back
+                                 _readBufPtr--; // set current pointer back
+                               }
+                               break; /* TODO */
          case PG_UP_KEY      : moveToHistory(_historyIdx - PG_OFFSET); break;
          case PG_DOWN_KEY    : moveToHistory(_historyIdx + PG_OFFSET); break;
-         case TAB_KEY        : /* TODO */ break;
-         case INSERT_KEY     : // not yet supported; fall through to UNDEFINE
+         case TAB_KEY        : insertChar('\t'); break; /* TODO */ // may have error //=========================
+         case INSERT_KEY     : // insertChar(char(pch));// not yet supported; fall through to UNDEFINE
          case UNDEFINED_KEY:   mybeep(); break;
          default:  // printable character
             insertChar(char(pch)); break;
@@ -85,7 +127,20 @@ CmdParser::readCmdInt(istream& istr)
 bool
 CmdParser::moveBufPtr(char* const ptr)
 {
-   // TODO...
+   // TODO... // may have error, recheck ==================================================
+   if(ptr == _readBuf) {
+      _readBufPtr = _readBuf;
+      return true;
+
+   } else if(ptr == _readBufEnd) {
+      _readBufPtr = _readBufEnd;
+      return true;
+
+   } else {
+      mybeep();
+      return false;
+   }
+
    return true;
 }
 
@@ -113,6 +168,28 @@ bool
 CmdParser::deleteChar()
 {
    // TODO...
+   // the current pointer is at the head of the array
+   if(_readBufPtr == _readBuf) {
+      mybeep();
+      return false;
+   }
+
+   // else
+   string s = _readBufPtr;
+   // delete a char on the screen
+   cout << 'b' << '\0' << s;
+
+   // delete a char in the array
+   _readBufPtr--;
+   _readBufEnd--;
+   char* tmp = _readBufPtr;
+   for(int i = 0; i < s.length(); i++) {
+      *tmp = *(tmp + 1);
+      tmp++;
+   }
+   *_readBufEnd = '\0';
+
+
    return true;
 }
 
@@ -136,6 +213,44 @@ CmdParser::insertChar(char ch, int repeat)
 {
    // TODO...
    assert(repeat >= 1);
+   *_readBufEnd = '\0'; // make sure the end of the array is null
+   string s = "";
+   // *** normal case
+   char* tmp = _readBufPtr; // for counting the characters after the current pointer
+   s = tmp; // save pointer to a string
+   int tmp_size = 0;
+   while(*tmp != '\0') { // while not reach the end
+      tmp_size++;
+      tmp++;
+   }
+
+   // repeating cout the char based on the repeat time
+   for(int i = 0; i < repeat; i++) {
+      // print on the screen
+      cout << ch;        
+
+      *_readBufPtr = ch; // store ch in the array
+      _readBufPtr++; // move current pointer right
+      _readBufEnd++; // move end pointer right
+
+   }
+
+   // print the original characters back
+   cout << s;
+
+   // recover the characters back and set end pointer back too
+   for(int i = 0; i < tmp_size; i++) {
+      *_readBufPtr = s[i];
+      _readBufPtr++;
+   }
+   _readBufEnd = _readBufPtr; // set the end pointer the the end og the array
+   for(int i = 0; i < tmp_size; i++) {
+      cout << '\b';
+      _readBufPtr--; // set the current pointer back
+   }
+
+   *_readBufEnd = '\0'; // set the end of string
+   
 }
 
 // 1. Delete the line that is currently shown on the screen
@@ -156,6 +271,23 @@ void
 CmdParser::deleteLine()
 {
    // TODO...
+   _readBufPtr = _readBufEnd = _readBuf; // set current pointer to the head of the array
+   string s = _readBufPtr;
+   // clear all characters
+   for(int i = 0; i < s.length(); i++) {
+      cout << 'b';
+   }
+   for(int i = 0; i < s.length(); i++) {
+      cout << '\0';
+   }
+   for(int i = 0; i < s.length(); i++) {
+      cout << 'b';
+   }
+
+   // reset _readBuf
+   _readBuf[0] = '\0';
+   
+
 }
 
 
@@ -181,6 +313,17 @@ void
 CmdParser::moveToHistory(int index)
 {
    // TODO...
+   if(index < 0) { // if out of the range of _history array
+      mybeep();
+      index = 0;
+      cout << _history[index];
+   } else if (index > _history.size() - 1) {
+      mybeep();
+      index = _history.size() - 1;
+      cout << _history[index];
+   } else {
+      cout << _history[index];
+   }
 }
 
 
@@ -200,6 +343,10 @@ void
 CmdParser::addHistory()
 {
    // TODO...
+   // add to history
+   char* tmp = _readBuf;
+   string s = tmp;
+   _history.push_back(s);
 }
 
 

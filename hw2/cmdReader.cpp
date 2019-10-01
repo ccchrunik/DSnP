@@ -46,38 +46,27 @@ CmdParser::readCmdInt(istream& istr)
          case HOME_KEY       : moveBufPtr(_readBuf); break;
          case LINE_END_KEY   :
          case END_KEY        : moveBufPtr(_readBufEnd); break;
-         case BACK_SPACE_KEY : if(_readBufPtr != &_readBuf[0]) { // when current pointer point to the head of the array, then it stops
-                                 string s = _readBufPtr;
+         case BACK_SPACE_KEY : if(_readBufPtr != _readBuf) { // when current pointer point to the head of the array, then it stops
+                                 
+                                 char* tmp = _readBufPtr;
+                                 string s = tmp;
+                                 tmp--;
+                                 _readBufPtr--;
                                  // clear the current position character on the screen
-                                 cout << 'b';
-                                 for(int i = 0; i < s.length() + 1; i++) {
-                                    cout << '\0';
-                                 } 
-                                 for(int i = 0; i < s.length() + 1; i++) {
+                                 cout << '\b' << s << ' ' << '\b';
+                                 
+                                 for(int i = 0; i < s.length(); i++) { // delete the char on the screen
                                     cout << '\b';
                                  }
-                                 
-                                 _readBufPtr--; // move current pointer left
-                                 char* tmp = _readBufPtr;
 
-                                 for(int i = 0; i < s.length(); i++) {
-                                    // keep replacing the current char by the next char
+                                 for(int i = 0; i < s.length(); i++) { // delete the char in the array
                                     *tmp = s[i];
                                     tmp++;
                                  }
-
-                                 _readBufEnd--; // move end pointer left
-                                 *_readBufEnd = '\0'; // set end of string
-
-                                 cout << s ;
-                                 for(int i = 0; i < s.length(); i++) {
-                                    cout << '\b';
-                                 }
                                  
-                               } else {
-                                 cout << '\a';                                 
+                                 _readBufEnd--;
+                                 *_readBufEnd = '\0'; // make sure the end of the string is '\0'
                                }
-
                                break; /* TODO */ 
                                // may have errors recheck ==================================================
                                // not yet to move all chars from right to left
@@ -88,7 +77,15 @@ CmdParser::readCmdInt(istream& istr)
          case ARROW_UP_KEY   : moveToHistory(_historyIdx - 1); break;
          case ARROW_DOWN_KEY : moveToHistory(_historyIdx + 1); break;
          case ARROW_RIGHT_KEY: if(_readBufPtr != _readBufEnd) { // when current pointer meet end pointer, then it stops
-                                 insertChar('\0'); // move cursor right
+                                 char *tmp = _readBufPtr;
+                                 string s = tmp;
+
+                                 cout << s;
+                                 _readBufPtr++;
+                                 for(int i = 0; i < s.length() - 1; i++) {
+                                    cout << '\b';
+                                 }
+
                                } 
                                break; /* TODO */
                                // still have to handle how to move all chars to right
@@ -218,11 +215,6 @@ CmdParser::insertChar(char ch, int repeat)
    // *** normal case
    char* tmp = _readBufPtr; // for counting the characters after the current pointer
    s = tmp; // save pointer to a string
-   int tmp_size = 0;
-   while(*tmp != '\0') { // while not reach the end
-      tmp_size++;
-      tmp++;
-   }
 
    // repeating cout the char based on the repeat time
    for(int i = 0; i < repeat; i++) {
@@ -239,12 +231,12 @@ CmdParser::insertChar(char ch, int repeat)
    cout << s;
 
    // recover the characters back and set end pointer back too
-   for(int i = 0; i < tmp_size; i++) {
+   for(int i = 0; i < s.length(); i++) {
       *_readBufPtr = s[i];
       _readBufPtr++;
    }
    _readBufEnd = _readBufPtr; // set the end pointer the the end og the array
-   for(int i = 0; i < tmp_size; i++) {
+   for(int i = 0; i < s.length(); i++) {
       cout << '\b';
       _readBufPtr--; // set the current pointer back
    }

@@ -66,6 +66,8 @@ CmdParser::readCmdInt(istream& istr)
                                  
                                  _readBufEnd--;
                                  *_readBufEnd = '\0'; // make sure the end of the string is '\0'
+                               } else {
+                                  mybeep();
                                }
                                break; /* TODO */ 
                                // may have errors recheck ==================================================
@@ -86,17 +88,21 @@ CmdParser::readCmdInt(istream& istr)
                                     cout << '\b';
                                  }
 
-                               } 
+                               } else {
+                                  mybeep();
+                               }
                                break; /* TODO */
                                // still have to handle how to move all chars to right
          case ARROW_LEFT_KEY : if(_readBufPtr != _readBuf) { // when current pointer reach index 0, then it stops
                                  cout << '\b'; // set cursor back
                                  _readBufPtr--; // set current pointer back
+                               } else {
+                                  mybeep();
                                }
                                break; /* TODO */
          case PG_UP_KEY      : moveToHistory(_historyIdx - PG_OFFSET); break;
          case PG_DOWN_KEY    : moveToHistory(_historyIdx + PG_OFFSET); break;
-         case TAB_KEY        : insertChar('\t'); break; /* TODO */ // may have error //=========================
+         case TAB_KEY        : insertChar(' ', TAB_POSITION); break; /* TODO */ // may have error //=========================
          case INSERT_KEY     : // insertChar(char(pch));// not yet supported; fall through to UNDEFINE
          case UNDEFINED_KEY:   mybeep(); break;
          default:  // printable character
@@ -124,7 +130,7 @@ CmdParser::readCmdInt(istream& istr)
 bool
 CmdParser::moveBufPtr(char* const ptr)
 {
-   // TODO... // may have error, recheck ==================================================
+   // TODO... // still not know how to check whether the pointer is within head and end
    if(ptr == _readBuf) { // return to the head of line
       if(_readBufPtr != _readBuf) { // if current pointer is not the same as head pointer
       string s1 = _readBufPtr;
@@ -134,7 +140,6 @@ CmdParser::moveBufPtr(char* const ptr)
          cout << '\b';
       }
       return true;
-
       }
    } else if(ptr == _readBufEnd) {
       char* tmp = _readBufPtr;
@@ -151,7 +156,7 @@ CmdParser::moveBufPtr(char* const ptr)
       return false;
    }
 
-   return true;
+
 }
 
 
@@ -178,17 +183,18 @@ bool
 CmdParser::deleteChar()
 {
    // TODO...
-   // the current pointer is at the head of the array
-   if(_readBufPtr == _readBuf) {
+   // the current pointer is at the end of the array
+   if(_readBufPtr == _readBufEnd) {
       mybeep();
       return false;
    }
 
    // else
+   _readBufPtr++;
    string s = _readBufPtr;
-
+   
    // delete a char on the screen
-   cout << '\b' << s << ' ';
+   cout << s << ' ';
 
    for(int i = 0; i < s.length() + 1; i++) {
       cout << '\b';
@@ -365,9 +371,53 @@ CmdParser::addHistory()
    // TODO...
    // add to history
    char* tmp = _readBuf;
-   string s = tmp;
-   _history.push_back(s);
-   _historyIdx++;
+   string s1 = tmp;
+   string s2 = "";
+   int lead_space = 0, last_space = 0, count = 0;;
+   if(s1 == "") { // empty string, break
+      return ;
+   }
+
+   for(int i = 0; i < s1.length(); i++) { // count leading space
+      if(s1[i] == ' ') {
+         count++;
+      }
+   }
+
+   if(count == s1.length()) { // all-space string, break
+      return ;
+   } 
+
+   for(int i = 0; i < s1.length(); i++) { // count leading space
+      if(s1[i] == ' ') {
+         lead_space++;
+      } else {
+         break;
+      }
+   }
+
+   for(int i = s1.length() - 1; i >= 0; i--) {
+      if(s1[i] == ' ') {
+         last_space++;
+      } else {
+         break;
+      }
+   }
+
+   for(int i = lead_space; i < s1.length() - last_space; i++) {
+      s2 += s1[i];
+   }
+   if(_history.size() == 0) { // the history is empty
+      _history.push_back(s2);
+      _historyIdx = _history.size(); // set history index to the lastest object
+   } else { // the history is not empty
+       if(s2 == _history[_history.size() - 1]) { // the same as previous object
+          return ;
+       }      
+      _history.push_back(s2);
+      _historyIdx = _history.size(); // set history index to the lastest object
+   }
+   
 }
 
 

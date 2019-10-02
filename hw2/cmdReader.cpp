@@ -356,10 +356,11 @@ CmdParser::moveToHistory(int index)
       }
       *_readBufEnd = '\0';
       
-      if(_historyIdx > index) _historyIdx--;
-      else _historyIdx++;
+      // if(_historyIdx > index) _historyIdx--;
+      // else _historyIdx++;
+      _historyIdx = index;
 
-      cout << _history[index];
+      cout << s;
    }
 }
 
@@ -386,6 +387,7 @@ CmdParser::addHistory()
    string s2 = "";
    int lead_space = 0, last_space = 0, count = 0;;
    if(s1 == "") { // empty string, break
+      _historyIdx = _history.size(); // set history index to the lastest object      
       return ;
    }
 
@@ -396,6 +398,7 @@ CmdParser::addHistory()
    }
 
    if(count == s1.length()) { // all-space string, break
+      _historyIdx = _history.size(); // set history index to the lastest object      
       return ;
    } 
 

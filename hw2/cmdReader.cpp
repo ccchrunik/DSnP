@@ -102,7 +102,16 @@ CmdParser::readCmdInt(istream& istr)
                                break; /* TODO */
          case PG_UP_KEY      : moveToHistory(_historyIdx - PG_OFFSET); break;
          case PG_DOWN_KEY    : moveToHistory(_historyIdx + PG_OFFSET); break;
-         case TAB_KEY        : insertChar(' ', TAB_POSITION); break; /* TODO */ // may have error //=========================
+         case TAB_KEY        : if(true) { // to prevent some case weird behavior
+                                 string s1 = _readBuf;
+                                 string s2 = _readBufPtr;
+                                 int mod = (s1.length() - s2.length()) % TAB_POSITION;
+                                 int remain = TAB_POSITION - mod;
+                                 if(mod >= 1) {
+                                    insertChar(' ', remain);
+                                 }
+                               }
+                               break; /* TODO */ // may have error //=========================
          case INSERT_KEY     : // insertChar(char(pch));// not yet supported; fall through to UNDEFINE
          case UNDEFINED_KEY:   mybeep(); break;
          default:  // printable character
@@ -156,6 +165,7 @@ CmdParser::moveBufPtr(char* const ptr)
       } else { // inside the array
          deleteLine();
          cout << check;
+         _readBufPtr = ptr;
          for(int i = 0; i < check.length() - (_readBufPtr - _readBuf); i++) {
             cout << '\b';
          }

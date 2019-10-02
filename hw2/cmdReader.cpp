@@ -186,17 +186,24 @@ CmdParser::deleteChar()
 
    // else
    string s = _readBufPtr;
+
    // delete a char on the screen
-   cout << 'b' << '\0' << s;
+   cout << '\b' << s << ' ';
+
+   for(int i = 0; i < s.length() + 1; i++) {
+      cout << '\b';
+   }
 
    // delete a char in the array
    _readBufPtr--;
    _readBufEnd--;
    char* tmp = _readBufPtr;
    for(int i = 0; i < s.length(); i++) {
-      *tmp = *(tmp + 1);
+      *tmp = s[i];
       tmp++;
    }
+
+
    *_readBufEnd = '\0';
 
 

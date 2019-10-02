@@ -131,30 +131,41 @@ bool
 CmdParser::moveBufPtr(char* const ptr)
 {
    // TODO... // still not know how to check whether the pointer is within head and end
-   if(ptr == _readBuf) { // return to the head of line
-      if(_readBufPtr != _readBuf) { // if current pointer is not the same as head pointer
-      string s1 = _readBufPtr;
-      _readBufPtr = _readBuf;
-      string s2 = _readBufPtr;
-      for(int i = 0; i < s2.length() - s1.length(); i++) {
-         cout << '\b';
+   string check = _readBuf;
+
+   if(_readBuf <= _readBufPtr && _readBufPtr <= _readBuf + check.length()) { // check if in the domain of the array
+      if(ptr == _readBuf) { // return to the head of line
+         if(_readBufPtr != _readBuf) { // if current pointer is not the same as head pointer
+         string s1 = _readBufPtr;
+         _readBufPtr = _readBuf;
+         string s2 = _readBufPtr;
+         for(int i = 0; i < s2.length() - s1.length(); i++) {
+            cout << '\b';
+         }
+         return true;
+         }
+      } else if(ptr == _readBufEnd) {
+         char* tmp = _readBufPtr;
+         string s = tmp;
+
+         cout << s;
+
+         _readBufPtr = _readBufEnd;
+
+         return true;
+      } else { // inside the array
+         deleteLine();
+         cout << check;
+         for(int i = 0; i < check.length() - (_readBufPtr - _readBuf); i++) {
+            cout << '\b';
+         }
       }
-      return true;
-      }
-   } else if(ptr == _readBufEnd) {
-      char* tmp = _readBufPtr;
-      string s = tmp;
-
-      cout << s;
-
-      _readBufPtr = _readBufEnd;
-
-      return true;
 
    } else {
       mybeep();
       return false;
    }
+   
 
 
 }

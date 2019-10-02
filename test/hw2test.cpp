@@ -6,33 +6,23 @@ int main() {
     char* _readBufPtr;
     char* _readBufEnd;
     char _readBuf[10] = {'\0'};
-
-    _readBufPtr = _readBufEnd = _readBuf;
-
-    for(int i = 0; i < 10; i++) {
-        _readBuf[i] = 97 + i;
-        cout << _readBuf[i];
-    }
-    cout << "\b\b\b\b\b";
- 
-    _readBufPtr = &_readBuf[5];
-
-    char* tmp = _readBufPtr;
-    string s = tmp;
-    char* tmp2 = _readBufPtr;
-    int tmp_size = 0;
-    while(*tmp2 != '\0') {
-        tmp_size++;
-        tmp2++;
-    }
-    cout << endl;
-    cout << tmp << endl;
-    cout << s << endl;
-    _readBuf[9] = 'Z';
-    cout << tmp << endl;
-    cout << s << endl;
-    
-
+   
+   for(int i = 0; i < 10; i++) {
+       _readBuf[i] = 97 + i;
+   }
+   _readBufPtr = &_readBuf[5];
+   cout << (_readBuf <= _readBufPtr) << endl;
+   cout << (_readBufPtr <= _readBuf + 10) << endl;
+   // cout << (_readBufEnd > _readBufPtr) << endl;
+   string s = _readBuf;
+   for(int i = 0; i < s.length(); i++) {
+       cout << s[i];
+   }
+   for(int i = 0; i < s.length() - (_readBufPtr - _readBuf); i++) {
+       cout << '\b';
+   }
+   cout << "kkkkk";
+   cout << endl;
 
 
     return 0;

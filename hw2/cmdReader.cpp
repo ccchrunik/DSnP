@@ -125,12 +125,25 @@ bool
 CmdParser::moveBufPtr(char* const ptr)
 {
    // TODO... // may have error, recheck ==================================================
-   if(ptr == _readBuf) {
+   if(ptr == _readBuf) { // return to the head of line
+      if(_readBufPtr != _readBuf) { // if current pointer is not the same as head pointer
+      string s1 = _readBufPtr;
       _readBufPtr = _readBuf;
+      string s2 = _readBufPtr;
+      for(int i = 0; i < s2.length() - s1.length(); i++) {
+         cout << '\b';
+      }
       return true;
 
+      }
    } else if(ptr == _readBufEnd) {
+      char* tmp = _readBufPtr;
+      string s = tmp;
+
+      cout << s;
+
       _readBufPtr = _readBufEnd;
+
       return true;
 
    } else {

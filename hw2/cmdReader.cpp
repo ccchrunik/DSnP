@@ -354,24 +354,27 @@ CmdParser::moveToHistory(int index)
    // TODO...
    if(index < 0) { // if out of the range of _history array
       mybeep();
+      index = 0;
    } else if (index > _history.size() - 1) {
       mybeep();
-   } else { // within the range
-      string s = _history[index];
-      deleteLine(); // reset the cmd
-      for(int i = 0; i < s.length(); i++) {
-         _readBuf[i] = s[i];
-         _readBufPtr++;
-         _readBufEnd++;
-      }
-      *_readBufEnd = '\0';
-      
-      // if(_historyIdx > index) _historyIdx--;
-      // else _historyIdx++;
-      _historyIdx = index;
-
-      cout << s;
+      index = _history.size() - 1;
+   } 
+   // within the range
+   string s = _history[index];
+   deleteLine(); // reset the cmd
+   for(int i = 0; i < s.length(); i++) {
+      _readBuf[i] = s[i];
+      _readBufPtr++;
+      _readBufEnd++;
    }
+   *_readBufEnd = '\0';
+      
+   // if(_historyIdx > index) _historyIdx--;
+   // else _historyIdx++;
+   _historyIdx = index;
+
+   cout << s;
+   
 }
 
 
@@ -436,7 +439,8 @@ CmdParser::addHistory()
       _historyIdx = _history.size(); // set history index to the lastest object
    } else { // the history is not empty
        if(s2 == _history[_history.size() - 1]) { // the same as previous object
-          return ;
+         _historyIdx = _history.size(); // set history index to the lastest object                
+         return ;
        }      
       _history.push_back(s2);
       _historyIdx = _history.size(); // set history index to the lastest object

@@ -378,7 +378,7 @@ CmdParser::moveToHistory(int index)
    if(_history.size() > 0 && temp_index == _historyIdx - PG_OFFSET && _historyIdx == _history.size()) { // page up
       if(_readBuf == "") {
         _history.push_back("");
-        _tempCmdStored = true;
+        // _tempCmdStored = true;
 
       } else {
          char* tmp = _readBuf;
@@ -391,7 +391,7 @@ CmdParser::moveToHistory(int index)
    } else if(_history.size() > 0 && index == _history.size() - 1 && index == _historyIdx - 1) { // when pressing up_arrow and index is at the end of the array
       if(_readBuf == "") {
         _history.push_back("");
-        _tempCmdStored = true;
+        // _tempCmdStored = true;
       } else {
          char* tmp = _readBuf;
          string s1 = tmp;
@@ -466,8 +466,12 @@ CmdParser::addHistory()
    //       }
    //    }
    // }
+   
+   //cout << endl << _readBuf << endl;
+   // cout << endl << _tempCmdStored << endl;
+   if(_tempCmdStored) _history.pop_back();  
 
-   // if(_tempCmdStored) _history.pop_back();
+   _tempCmdStored = false;
 
    if(_history.size() > 0) { // if there is some space in the array, clear it
       for(int i = _history.size() - 1; i >= 0; i--) {
@@ -520,14 +524,20 @@ CmdParser::addHistory()
       s2 += s1[i];
    }
 
-   // if(_history.size() > 0) _history.pop_back();
+   // if(_history.size() > 0) {
+   //    cout << endl;
+   //    for(int i = 0; i < _history.size(); i++) {
+   //       cout << _history[i] << endl;;
+   //    }
+   // }
+   
 
    if(_history.size() == 0) { // the history is empty
       _history.push_back(s2);
       _historyIdx = _history.size(); // set history index to the lastest object
    } else { // the history is not empty
        if(s2 == _history[_history.size() - 1]) { // the same as previous object
-         _history.pop_back();
+         // _history.pop_back();
          _historyIdx = _history.size(); // set history index to the lastest object                
          return ;
        }      
@@ -535,7 +545,13 @@ CmdParser::addHistory()
       _historyIdx = _history.size(); // set history index to the lastest object
    }
 
-   
+   if(_history.size() > 0) { // if there is some space in the array, clear it
+      for(int i = _history.size() - 1; i >= 0; i--) {
+         if(_history[i] == "") {
+           _history.pop_back();
+         }
+      }
+   }
    
 }
 

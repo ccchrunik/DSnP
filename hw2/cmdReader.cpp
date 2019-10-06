@@ -107,9 +107,7 @@ CmdParser::readCmdInt(istream& istr)
                                  string s2 = _readBufPtr;
                                  int mod = (s1.length() - s2.length()) % TAB_POSITION;
                                  int remain = TAB_POSITION - mod;
-                                 if(mod >= 1) {
-                                    insertChar(' ', remain);
-                                 }
+                                 insertChar(' ', remain);
                                }
                                break; /* TODO */ // may have error //=========================
          case INSERT_KEY     : // insertChar(char(pch));// not yet supported; fall through to UNDEFINE
@@ -354,28 +352,76 @@ void
 CmdParser::moveToHistory(int index)
 {
    // TODO...
+   int temp_index = index;
    
-
-   if(index < 0) { // if out of the range of _history array
+   _tempCmdStored = false;
+   if(_history.size() == 0) { // no element
+      mybeep();
+      return ;
+   } else if(index == _historyIdx - PG_OFFSET && index < 0 && _historyIdx != 0) { // page up key
+      index = 0;
+   } else if(index < 0) { // up arrow key , have elements but out of range
       mybeep();
       index = 0;
-   } else if (index > _history.size() - 1) {
+   } else if(index == _historyIdx + PG_OFFSET && index > _history.size() - 1 && _historyIdx == _history.size()) { // page down key
+      index = _history.size() - 1;
+      mybeep();
+      return ;
+   } else if(index == _historyIdx + PG_OFFSET && index > _history.size() - 1 && _historyIdx != _history.size() - 1) { // page down key
+      index = _history.size() - 1;
+   } else if (index > _history.size() - 1) { // down arrow key , have element but out of range
       mybeep();
       index = _history.size() - 1;
       return ;
    } 
    // within the range
-
-   if(_history.size() > 0 && index == _history.size() - 1 && index == _historyIdx - 1) { // when pressing up_arrow and index is at the end of the array
+   if(_history.size() > 0 && temp_index == _historyIdx - PG_OFFSET && _historyIdx == _history.size()) { // page up
       if(_readBuf == "") {
         _history.push_back("");
+        _tempCmdStored = true;
+
       } else {
          char* tmp = _readBuf;
          string s1 = tmp;
          // cout << endl << s1 << endl;
          _history.push_back(s1); // only push something back in the array
+        _tempCmdStored = true;
+
       }
-   } 
+   } else if(_history.size() > 0 && index == _history.size() - 1 && index == _historyIdx - 1) { // when pressing up_arrow and index is at the end of the array
+      if(_readBuf == "") {
+        _history.push_back("");
+        _tempCmdStored = true;
+      } else {
+         char* tmp = _readBuf;
+         string s1 = tmp;
+         // cout << endl << s1 << endl;
+         _history.push_back(s1); // only push something back in the array
+        _tempCmdStored = true;
+      }
+   } else if(_history.size() > 0 && index == _historyIdx - PG_OFFSET && index == _history.size() - 2 && _history[_history.size() - 1] == "") {
+      if(_readBuf == "") {
+         _history[_history.size() - 1] = "";
+       // _tempCmdStored = true;
+      } else {
+         char* tmp = _readBuf;
+         string s1 = tmp;
+         _history[_history.size() - 1] = s1; 
+        //_tempCmdStored = true;
+      }
+   } else if(_history.size() > 0 && index == _historyIdx - 1 && index == _history.size() - 2 && _history[_history.size() - 1] == "") {
+      if(_readBuf == "") {
+         _history[_history.size() - 1] = "";
+        //_tempCmdStored = true;
+      } else {
+         char* tmp = _readBuf;
+         string s1 = tmp;
+         _history[_history.size() - 1] = s1; 
+        //_tempCmdStored = true;
+
+      }
+      
+   }
 
    string s = _history[index];
    
@@ -421,19 +467,23 @@ CmdParser::addHistory()
    //    }
    // }
 
+   // if(_tempCmdStored) _history.pop_back();
 
+   if(_history.size() > 0) { // if there is some space in the array, clear it
+      for(int i = _history.size() - 1; i >= 0; i--) {
+         if(_history[i] == "") {
+           _history.pop_back();
+         }
+      }
+   }
    
    char* tmp = _readBuf;
-
-   if(_history.size() > 0 && tmp == _history[_history.size() - 1]) { // if the current input is not the same as temp history string
-      _historyIdx = _history.size(); // set history index to the lastest object            
-      return ; // do nothing
-   }
 
    string s1 = tmp;
    string s2 = "";
    int lead_space = 0, last_space = 0, count = 0;;
    if(s1 == "") { // empty string, break
+      // _history.pop_back();
       _historyIdx = _history.size(); // set history index to the lastest object      
       return ;
    }
@@ -445,6 +495,7 @@ CmdParser::addHistory()
    }
 
    if(count == s1.length()) { // all-space string, break
+      _history.pop_back();
       _historyIdx = _history.size(); // set history index to the lastest object      
       return ;
    } 
@@ -469,19 +520,22 @@ CmdParser::addHistory()
       s2 += s1[i];
    }
 
-   
+   // if(_history.size() > 0) _history.pop_back();
 
    if(_history.size() == 0) { // the history is empty
       _history.push_back(s2);
       _historyIdx = _history.size(); // set history index to the lastest object
    } else { // the history is not empty
        if(s2 == _history[_history.size() - 1]) { // the same as previous object
+         _history.pop_back();
          _historyIdx = _history.size(); // set history index to the lastest object                
          return ;
        }      
       _history.push_back(s2);
       _historyIdx = _history.size(); // set history index to the lastest object
    }
+
+   
    
 }
 

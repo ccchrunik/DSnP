@@ -310,8 +310,10 @@ void
 CmdParser::deleteLine()
 {
    // TODO...
+   string tmp = _readBufPtr;
+   cout << tmp;
    _readBufPtr = _readBufEnd = _readBuf; // set current pointer to the head of the array
-   string s = _readBufPtr; // record the length of the array
+   string s = _readBuf; // record the length of the array
    // clear all characters
    for(int i = 0; i < s.length(); i++) {
       cout << '\b';
@@ -352,15 +354,31 @@ void
 CmdParser::moveToHistory(int index)
 {
    // TODO...
+   
+
    if(index < 0) { // if out of the range of _history array
       mybeep();
       index = 0;
    } else if (index > _history.size() - 1) {
       mybeep();
       index = _history.size() - 1;
+      return ;
    } 
    // within the range
+
+   if(_history.size() > 0 && index == _history.size() - 1 && index == _historyIdx - 1) { // when pressing up_arrow and index is at the end of the array
+      if(_readBuf == "") {
+        _history.push_back("");
+      } else {
+         char* tmp = _readBuf;
+         string s1 = tmp;
+         // cout << endl << s1 << endl;
+         _history.push_back(s1); // only push something back in the array
+      }
+   } 
+
    string s = _history[index];
+   
    deleteLine(); // reset the cmd
    for(int i = 0; i < s.length(); i++) {
       _readBuf[i] = s[i];
@@ -395,7 +413,23 @@ CmdParser::addHistory()
 {
    // TODO...
    // add to history
+   // if(_history.size() > 0) { // if there is some space in the array, clear it
+   //    for(int i = _history.size() - 1; i >= 0; i--) {
+   //       if(_history[i] == "") {
+   //         _history.pop_back();
+   //       }
+   //    }
+   // }
+
+
+   
    char* tmp = _readBuf;
+
+   if(_history.size() > 0 && tmp == _history[_history.size() - 1]) { // if the current input is not the same as temp history string
+      _historyIdx = _history.size(); // set history index to the lastest object            
+      return ; // do nothing
+   }
+
    string s1 = tmp;
    string s2 = "";
    int lead_space = 0, last_space = 0, count = 0;;
@@ -434,6 +468,9 @@ CmdParser::addHistory()
    for(int i = lead_space; i < s1.length() - last_space; i++) {
       s2 += s1[i];
    }
+
+   
+
    if(_history.size() == 0) { // the history is empty
       _history.push_back(s2);
       _historyIdx = _history.size(); // set history index to the lastest object

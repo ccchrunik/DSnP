@@ -36,13 +36,58 @@ istream& operator >> (istream& is, DBJson& j)
    // - You can assume the input file is with correct JSON file format
    // - NO NEED to handle error file format
    assert(j._obj.empty());
+   fstream file;
+   string key_words = "", value_words = "";
+   char word;
+   bool key_f = false, value_f = false;
+   while(is.get(word)) {
+      if(word == '\"' && !key_f) key_f = true; // start the key
+      else if(word == '\"' && key_f) key_f = false; // end the key
+      else if(word == ':' && !value_f) value_f = true; // start the value
+      else if(word == ',' && value_f) {
+         value_f = false; // end the value
+         int value = stoi(value_words); // convert string to integer
 
+         // add element in DBJson
+         DBJsonElem elm(key_words, value); 
+         j.add(elm);
+         key_words = ""; value_words = "";
+      }
+      else if(((word >= 65 && word <= 90) || (word >= 97 && word <= 122) || word == '_') && key_f) { // record the key
+         key_words += word; 
+      } else if(word >= 48 && word <= 57 && value_f) { // record the value
+         value_words += word;
+      } 
+   }
+
+   // add the last element since it doesnt have ','
+   if(key_words != "" && value_words != "") {
+      
+      value_f = false; // end the value
+      int value = stoi(value_words); // convert string to integer
+
+      // add element in DBJson
+      DBJsonElem elm(key_words, value); 
+      j.add(elm);
+   }
+   
+   
+   j.success = true; // read file successfully
+   
    return is;
 }
 
 ostream& operator << (ostream& os, const DBJson& j)
 {
    // TODO
+   os << '{' << endl;
+   if(j.size() > 0) {
+      for(int i = 0; i < j.size() - 1; ++i) { 
+         os << "  " << j[i] << ',' << endl;
+      }
+      os << "  " << j[j.size() - 1] << endl;
+   }
+   os << '}';
    return os;
 }
 
@@ -56,6 +101,9 @@ void
 DBJson::reset()
 {
    // TODO
+   // I think it is to clear all value in DBJson
+   _obj.clear();
+   MAX = 0.0; MIN = 0.0; SUM = 0.0; AVE = 0.0; success = false;
 }
 
 // return false if key is repeated
@@ -63,6 +111,36 @@ bool
 DBJson::add(const DBJsonElem& elm)
 {
    // TODO
+   // check if the key is repeated
+   if(size() > 0) {
+      for(int i = 0; i < size(); ++i) {
+         if(elm.key() == _obj[i].key()) {
+            return false;
+         }
+      }
+   }
+
+   _obj.push_back(elm); // add element into DBJson
+   if(size() == 1) {
+      MAX = elm.value();
+      max_index = 0;
+      MIN = elm.value();
+      min_index = 0;
+   } else {
+      if(elm.value() > MAX) {
+         MAX = elm.value();         // reset MAX
+         max_index = size() - 1;
+      }
+      else if(elm.value() < MIN) {
+         MIN = elm.value();    // reset MIN
+         min_index = size() - 1;
+      }
+   }
+   
+
+   SUM = SUM + elm.value();        // reset SUM
+   AVE = (float)SUM / (float)size();
+
    return true;
 }
 
@@ -71,16 +149,24 @@ float
 DBJson::ave() const
 {
    // TODO
-   return 0.0;
+   if(empty()) return NAN;  // may have error empty case
+   else return AVE;         // normal case
 }
 
-// If DBJson is empty, set idx to size() and return INT_MIN
+// If DBJson is empty, set idx to size() and return INT_MAX
 int
 DBJson::max(size_t& idx) const
 {
    // TODO
-   int maxN = INT_MIN;
-   return  maxN;
+   if(empty()) {
+      idx = size();
+      return INT_MAX;  // empty case
+   } 
+   else {
+      idx = max_index;
+      return MAX;            // normal case
+   }
+
 }
 
 // If DBJson is empty, set idx to size() and return INT_MIN
@@ -88,8 +174,15 @@ int
 DBJson::min(size_t& idx) const
 {
    // TODO
-   int minN = INT_MAX;
-   return  minN;
+   if(empty()) {
+      idx = size();
+      return INT_MIN; // empty case
+   }
+   else {
+      idx = min_index;
+      return MIN;            // normal case
+   }
+
 }
 
 void
@@ -97,6 +190,26 @@ DBJson::sort(const DBSortKey& s)
 {
    // Sort the data according to the order of columns in 's'
    ::sort(_obj.begin(), _obj.end(), s);
+   if(size() > 0) {
+      int max_v = _obj[0].value(), min_v = _obj[0].value();
+      int max_key = 0, min_key = 0;
+      for(int i = 0; i < size() - 1; ++i) {
+         if(_obj[i].value() > max_v) {
+            max_key = i;
+            max_v = _obj[i].value();
+         }
+         if(_obj[i].value() < min_v) {
+            min_key = i;
+            min_v = _obj[i].value();
+         }
+      }
+      
+      MAX = max_v;
+      max_index = max_key;
+      MIN = min_v;
+      min_index = min_key;
+
+   }
 }
 
 void
@@ -104,6 +217,12 @@ DBJson::sort(const DBSortValue& s)
 {
    // Sort the data according to the order of columns in 's'
    ::sort(_obj.begin(), _obj.end(), s);
+   if(size() > 0) {
+      MAX = _obj[size() - 1].value();
+      max_index = size() - 1;
+      MIN = _obj[0].value();
+      min_index = 0;
+   }
 }
 
 // return 0 if empty
@@ -111,6 +230,6 @@ int
 DBJson::sum() const
 {
    // TODO
-   int s = 0;
-   return s;
+   if(empty()) return 0;  // empty case
+   else return SUM;       // normal case
 }

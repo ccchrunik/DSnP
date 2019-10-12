@@ -6,6 +6,7 @@
   Copyright    [ Copyleft(c) 2015-present LaDs(III), GIEE, NTU, Taiwan ]
 ****************************************************************************/
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <cstdlib>
 #include "dbJson.h"
@@ -36,16 +37,29 @@ main(int argc, char** argv)
       cout << "Table is resetting..." << endl;
       dbjson.reset();
    }
-   if (!(inf >> dbjson)) {
-      cerr << "Error in reading JSON file!!" << endl;
-      exit(-1);
-   }
-
+   // if (!(inf >> dbjson)) {
+   //    cerr << "Error in reading JSON file!!" << endl;
+   //    exit(-1);
+   // }
+   inf >> dbjson;
+   size_t idx;
    cout << "========================" << endl;
    cout << " Print JSON object" << endl;
    cout << "========================" << endl;
+   DBJsonElem a("Eric", 50);
+   dbjson.add(a);
+   DBSortKey key;
+   DBSortValue value;
+   dbjson.sort(key);
    cout << dbjson << endl;
-
+   cout << dbjson.max(idx) << ' ' << idx << endl;
+   cout << dbjson.min(idx) << ' ' << idx << endl;
+   dbjson.sort(value);
+   cout << dbjson << endl;
+   cout << dbjson.max(idx) << ' ' << idx << endl;
+   cout << dbjson.min(idx) << ' ' << idx << endl;
+   cout << dbjson.sum() << endl;
+   cout << fixed << setprecision(1) << dbjson.ave() << endl;
    // TODO
    // Insert what you want to test here by calling DBJson's member functions
 

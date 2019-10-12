@@ -40,7 +40,10 @@ class DBJson
 {
 public:
    // TODO: define constructor & member functions on your own
-   DBJson() {}
+   DBJson() {
+      MAX = 0; MIN = 0; SUM = 0; AVE = 0.0; success = false;
+      max_index = 0; min_index = 0;
+   }
    bool add(const DBJsonElem&); // return false if key is repeated
    float ave() const;
    int max(size_t&) const;
@@ -69,6 +72,10 @@ public:
 private:
    vector<DBJsonElem>       _obj;  // DO NOT change this definition.
                                    // Use it to store JSON elements.
+   int MAX, MIN, SUM;
+   size_t max_index, min_index;
+   float AVE;
+   bool success;
 };
 
 struct DBSortKey

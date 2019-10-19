@@ -30,7 +30,14 @@ CmdParser::openDofile(const string& dof)
 {
    // TODO...
    _dofile = new ifstream(dof.c_str());
-   return true;
+   string line;
+   if(_dofile->is_open()) {
+      return true;
+   } else {
+      return false;
+   }
+
+
 }
 
 // Must make sure _dofile != 0
@@ -39,6 +46,8 @@ CmdParser::closeDofile()
 {
    assert(_dofile != 0);
    // TODO...
+   _dofile->clear();
+   _dofile->close();
    delete _dofile;
 }
 
@@ -72,7 +81,17 @@ CmdParser::regCmd(const string& cmd, unsigned nCmp, CmdExec* e)
    return (_cmdMap.insert(CmdRegPair(mandCmd, e))).second;
 }
 
-// Return false on "quit" or if excetion happens
+// read in the command // may have error // not the default
+// bool
+// CmdParser::readCmd(istream& is)
+// {
+//    char c;
+//    is.get(c);
+//    if(c != '\0') return true; // have some command
+//    else return false;         // have no command
+// }
+
+// Return false on "quit" or if exception happens
 CmdExecStatus
 CmdParser::execOneCmd()
 {
@@ -97,7 +116,11 @@ CmdParser::execOneCmd()
 void
 CmdParser::printHelps() const
 {
-   // TODO...
+   CmdMap::const_iterator iter;
+
+   for(iter = _cmdMap.begin(); iter != _cmdMap.end(); ++iter) {
+      iter->second->help();
+   }
 }
 
 void
@@ -140,7 +163,28 @@ CmdParser::parseCmd(string& option)
 
    // TODO...
    assert(str[0] != 0 && str[0] != ' ');
-   return NULL;
+
+   string cmd = "";
+   size_t pos = 0, end = 0;
+   myStrGetTok(str, cmd, pos); // get the main cmd and return the pos of the token
+
+   option = str.substr(cmd.length()); // remove the main cmd from option
+
+   if(option != "") {
+      option = option.substr(1);
+   }
+   // if(option != "") {
+   //    for(int i = 0; i < option.length(); ++i) {
+   //       if(option[i] != ' ') {
+   //          option = option.substr(i);
+   //       }
+   //    }
+   // }
+   
+   return getCmd(cmd);
+
+
+   // return NULL;
 }
 
 // Remove this function for TODO...
@@ -293,6 +337,64 @@ CmdParser::parseCmd(string& option)
 void
 CmdParser::listCmd(const string& str)
 {
+   CmdMap::iterator iter;
+   int count = 0;
+   int spaces = 0;
+   // count spaces
+   for(int i = 0; i < str.length(); ++i) { 
+      if(str[i] == ' ') ++spaces;
+   }
+
+   if(str == "" || str == "\n") { // is str is null then print all commands
+      cout << endl;
+      for(iter = _cmdMap.begin(); iter != _cmdMap.end(); ++iter) {
+         cout << (iter->first + iter->second->getOptCmd());
+         ++count;
+         if(count >= 5) {
+            cout << endl;
+            count = 0;
+         } else {
+            cout << ' ';
+         }
+      }
+      cout << endl;
+      resetBufAndPrintPrompt(); // reset cmd
+   } else if(spaces == str.length()) { // if str are all spaces then print all commands
+      cout << endl;
+      for(iter = _cmdMap.begin(); iter != _cmdMap.end(); ++iter) {
+         cout << (iter->first + iter->second->getOptCmd());
+         ++count;
+         if(count >= 5) {
+            cout << endl;
+            count = 0;
+         } else {
+            cout << ' ';
+         }
+      }
+      cout << endl;
+      resetBufAndPrintPrompt();
+      // not yet handle print out all spaces
+      insertChar(' ', spaces);
+   } else {
+      vector<string> opt_cmds;
+      // keep iterating until we screen out all impossible cmd
+      for(iter = _cmdMap.begin(); iter != _cmdMap.end(); ++iter) {
+         // if they match the commmand
+         string opt_cmd = iter->first + iter->second->getOptCmd();
+         if(myStrNCmp(opt_cmd, str, str.length())) { 
+            opt_cmds.push_back(opt_cmd);
+         }
+      }
+      // print selected cmd
+      for(int i = 0; i < opt_cmds.size(); ++i) {
+         cout << opt_cmds[i];
+         if(count >= 5) {
+            cout << endl;
+            count = 0;
+         }
+      }
+      resetBufAndPrintPrompt();
+   }
    // TODO...
 }
 
@@ -312,6 +414,14 @@ CmdParser::getCmd(string cmd)
 {
    CmdExec* e = 0;
    // TODO...
+   CmdMap::iterator iter;
+
+   for(iter = _cmdMap.begin(); iter != _cmdMap.end(); ++iter) {
+      if(!(myStrNCmp(iter->first + iter->second->getOptCmd(), cmd, iter->first.length()))){ // find the command
+         e = iter->second;
+      }
+   }
+   
    return e;
 }
 

@@ -51,6 +51,7 @@ public:
    void sort(const DBSortKey&);
    void sort(const DBSortValue&);
    int sum() const;
+   vector<DBJsonElem> find_key(string&) const;
 
    // Basic access functions
    void reset();
@@ -61,9 +62,14 @@ public:
 
    // TODO modify these two functions according to the comments
    // return true if JSON file hasn't been read in
-   bool operator !() { return false; }
+   bool operator !() { return false;}
    // return this if JSON file has been read in; return NLL if not.
-   operator void* () const { return NULL; }
+   operator void* () const { 
+      if(success)
+         return (void*)this; 
+      else
+         return NULL;
+   }
 
    // Read DBJson
    friend istream& operator >> (istream& is, DBJson& j);

@@ -54,8 +54,16 @@ main(int argc, char** argv)
       myexit();
    }
 
-   if (!initCommonCmd() || !initDbCmd())
+   // if (!initCommonCmd() || !initDbCmd())
+   //    return 1;
+   if(!initCommonCmd())
       return 1;
+
+   if(!initDbCmd())
+      return 1;
+
+   // initCommonCmd();
+   // initDbCmd();
 
    CmdExecStatus status = CMD_EXEC_DONE;
    while (status != CMD_EXEC_QUIT) {  // until "quit" or command error

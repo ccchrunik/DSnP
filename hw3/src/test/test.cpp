@@ -46,7 +46,7 @@ main(int argc, char** argv)
    cout << "========================" << endl;
    cout << " Print JSON object" << endl;
    cout << "========================" << endl;
-   DBJsonElem a("Eric", 50);
+   DBJsonElem a("rion", 40);
    dbjson.add(a);
    DBSortKey key;
    DBSortValue value;
@@ -55,6 +55,11 @@ main(int argc, char** argv)
    cout << dbjson.max(idx) << ' ' << idx << endl;
    cout << dbjson.min(idx) << ' ' << idx << endl;
    dbjson.sort(value);
+   string s = "R";
+   vector<DBJsonElem> b = dbjson.find_key(s);
+   for(int i = 0; i < b.size(); ++i) {
+      cout << b[i] << endl;
+   }
    cout << dbjson << endl;
    cout << dbjson.max(idx) << ' ' << idx << endl;
    cout << dbjson.min(idx) << ' ' << idx << endl;

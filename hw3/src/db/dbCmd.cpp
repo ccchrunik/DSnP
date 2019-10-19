@@ -12,6 +12,7 @@
 #include "util.h"
 #include "dbCmd.h"
 #include "dbJson.h"
+// #include "cmdParser.h" // may have error
 
 // Global variable
 DBJson dbjson;
@@ -20,6 +21,19 @@ bool
 initDbCmd()
 {
    // TODO...
+   if (!(cmdMgr->regCmd("DBAppend", 3, new DBAppendCmd) &&
+         cmdMgr->regCmd("DBAVerage", 4, new DBAveCmd) &&
+         cmdMgr->regCmd("DBCount", 3, new DBCountCmd) &&
+         cmdMgr->regCmd("DBMAx", 4, new DBMaxCmd) &&
+         cmdMgr->regCmd("DBMIn", 4, new DBMinCmd) && 
+         cmdMgr->regCmd("DBPrint", 3, new DBPrintCmd) && 
+         cmdMgr->regCmd("DBRead", 3, new DBReadCmd) && 
+         cmdMgr->regCmd("DBSOrt", 4, new DBSortCmd) && 
+         cmdMgr->regCmd("DBSUm", 4, new DBSumCmd)         
+      )) {
+      cerr << "Registering \"dbCmd\" commands fails... exiting" << endl;
+      return false;
+   }
    return true;
 }
 
@@ -31,7 +45,56 @@ DBAppendCmd::exec(const string& option)
 {
    // TODO...
    // check option
+   if(dbjson.empty()) {
+      cerr << "Error: DB is not created yet!!" << endl;
+      return CMD_EXEC_ERROR;
+   }
 
+   string token;
+   
+   vector<string> options;
+   if (!CmdExec::lexOptions(option, options))
+      return CMD_EXEC_ERROR;
+
+   if (options.empty())
+      return CmdExec::errorOption(CMD_OPT_MISSING, "");
+
+   if (options.size() == 1)
+      return CmdExec::errorOption(CMD_OPT_MISSING, option);      
+
+   if (options.size() > 2) {
+      int end;
+      int count = 0;
+      for(int i = 0; i < option.length(); ++i) {
+         if(option[i] == ' ') {
+            count++;
+         }
+         if(count == 2) {
+            end = i + 1;
+            break;
+         }
+      }
+      return CmdExec::errorOption(CMD_OPT_EXTRA, option.substr(end));            
+   }
+
+   if(!isValidVarName(options[0])) { // key is not a valid key
+      return CmdExec::errorOption(CMD_OPT_ILLEGAL, option);
+   }
+   
+   int v;
+
+   if(!myStr2Int(options[1], v)) { // value is not a number
+      return CmdExec::errorOption(CMD_OPT_ILLEGAL, option);
+   }
+
+   DBJsonElem elm(options[0], v); // create a DBJson element
+
+   // add it to dbjson
+   if(!dbjson.add(elm)) { // key conclict
+      cerr << "Error: Element with key \"" << options[0] <<"\" already exists!!" << endl;
+      return CMD_EXEC_ERROR;
+   }
+   
    return CMD_EXEC_DONE;
 }
 
@@ -60,7 +123,7 @@ DBAveCmd::exec(const string& option)
       return CMD_EXEC_ERROR;
 
    float a = dbjson.ave();
-   if (a == NAN) {
+   if (isnan(a)) {
       cerr << "Error: The average of the DB is nan." << endl;
       return CMD_EXEC_ERROR;
    }
@@ -198,7 +261,37 @@ CmdExecStatus
 DBPrintCmd::exec(const string& option)
 {  
    // TODO...
+   if(dbjson.empty()) {
+      cerr << "Error: DB is not created yet!!" << endl;
+      return CMD_EXEC_ERROR;
+   }
 
+   if(option == "") {
+      cout << dbjson << endl;
+      cout << "Total JSON elements: " << dbjson.size() << endl;
+      return CMD_EXEC_DONE;
+   }
+
+   string token;
+   if(!CmdExec::lexSingleOption(option, token)) { // to many options
+      return CmdExec::errorOption(CMD_OPT_EXTRA, option);
+   }
+
+   vector<DBJsonElem> match_key;
+   match_key = dbjson.find_key(token); // find if there is a key-value pair inside the db
+   for(int i = 0; i < match_key.size(); ++i) {
+      if(match_key[i].key() == "") {         // no such an element
+         cerr << "Error: No JSON element with key \"" << token << "\" is found." << endl;
+         return CMD_EXEC_ERROR;
+      }
+      else 
+         cout << match_key[i] << endl;
+   }
+   
+
+   
+   // cout << key_value << endl;
+   
    return CMD_EXEC_DONE;
 }
 
@@ -259,7 +352,7 @@ DBReadCmd::exec(const string& option)
       cout << "DB is replaced..." << endl;
       dbjson.reset();
    }
-//   if (!(ifs >> dbtbl)) return CMD_EXEC_ERROR;
+   // if (!(ifs >> dbtbl)) return CMD_EXEC_ERROR;
    ifs >> dbjson;
    cout << "\"" << fileName << "\" was read in successfully." << endl;
 

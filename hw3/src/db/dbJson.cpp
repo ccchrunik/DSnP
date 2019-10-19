@@ -36,10 +36,15 @@ istream& operator >> (istream& is, DBJson& j)
    // - You can assume the input file is with correct JSON file format
    // - NO NEED to handle error file format
    assert(j._obj.empty());
-   fstream file;
+   // not yet check, if not read file right
+   string s;
+   if(!(is >> s)) 
+      return (is >> s);
+
    string key_words = "", value_words = "";
    char word;
    bool key_f = false, value_f = false;
+   bool invalid_key = false;
    while(is.get(word)) {
       if(word == '\"' && !key_f) key_f = true; // start the key
       else if(word == '\"' && key_f) key_f = false; // end the key
@@ -53,11 +58,18 @@ istream& operator >> (istream& is, DBJson& j)
          j.add(elm);
          key_words = ""; value_words = "";
       }
-      else if(((word >= 65 && word <= 90) || (word >= 97 && word <= 122) || word == '_') && key_f) { // record the key
+      else if(((word >= 65 && word <= 90) || (word >= 97 && word <= 122) || word == '_') && key_f && key_words.length() == 0) { 
+         // record the key if this is the first letter
+         key_words += word; 
+      } else if(((word >= 65 && word <= 90) || (word >= 97 && word <= 122) || (word >= 48 && word <= 57) || word == '_') && key_f && key_words.length() > 0) { 
+         // record the key if this is not the first letter
          key_words += word; 
       } else if(word >= 48 && word <= 57 && value_f) { // record the value
          value_words += word;
-      } 
+      } else if(((word >= 65 && word <= 90) || (word >= 97 && word <= 122) || (word >= 48 && word <= 57) || word == '_') && key_f && key_words.length() == 0) {
+         // if there is an invalid key, set it to trues
+         invalid_key = true;
+      }
    }
 
    // add the last element since it doesnt have ','
@@ -74,7 +86,8 @@ istream& operator >> (istream& is, DBJson& j)
    
    j.success = true; // read file successfully
    
-   return is;
+   // may have error
+   return is>>s;
 }
 
 ostream& operator << (ostream& os, const DBJson& j)
@@ -112,6 +125,7 @@ DBJson::add(const DBJsonElem& elm)
 {
    // TODO
    // check if the key is repeated
+   // if(!isValidVarName(elm.key())) return false; // not a valid key name
    if(size() > 0) {
       for(int i = 0; i < size(); ++i) {
          if(elm.key() == _obj[i].key()) {
@@ -119,7 +133,6 @@ DBJson::add(const DBJsonElem& elm)
          }
       }
    }
-
    _obj.push_back(elm); // add element into DBJson
    if(size() == 1) {
       MAX = elm.value();
@@ -193,7 +206,7 @@ DBJson::sort(const DBSortKey& s)
    if(size() > 0) {
       int max_v = _obj[0].value(), min_v = _obj[0].value();
       int max_key = 0, min_key = 0;
-      for(int i = 0; i < size() - 1; ++i) {
+      for(int i = 0; i < size(); ++i) {
          if(_obj[i].value() > max_v) {
             max_key = i;
             max_v = _obj[i].value();
@@ -232,4 +245,24 @@ DBJson::sum() const
    // TODO
    if(empty()) return 0;  // empty case
    else return SUM;       // normal case
+}
+
+vector<DBJsonElem>
+DBJson::find_key(string& key) const
+{
+   vector<DBJsonElem> match_key;
+   bool fail = false;
+   for(int i = 0; i < size(); ++i) {
+      if(!myStrNCmp(_obj[i].key(), key, key.length())) { // if there is an command
+         match_key.push_back(_obj[i]); // push key to the vector
+      }
+   }
+   
+   DBJsonElem f("", 0);
+   
+   if(match_key.size() == 0) {
+      match_key.push_back(f);
+   }
+
+   return match_key;
 }

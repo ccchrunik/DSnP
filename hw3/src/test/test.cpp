@@ -37,11 +37,12 @@ main(int argc, char** argv)
       cout << "Table is resetting..." << endl;
       dbjson.reset();
    }
+   inf >> dbjson;
    // if (!(inf >> dbjson)) {
-   //    cerr << "Error in reading JSON file!!" << endl;
+   //    cout << "Error in reading JSON file!!" << endl;
    //    exit(-1);
    // }
-   inf >> dbjson;
+   // inf >> dbjson;
    size_t idx;
    cout << "========================" << endl;
    cout << " Print JSON object" << endl;
